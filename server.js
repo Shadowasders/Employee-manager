@@ -6,6 +6,8 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const db = require("./lib/index");
 const { table } = require('console');
+// const { addRole, depMap } = require('./lib/index'); 
+const connection = require('./connection.js');
 
 // db.viewRoles()
 const menuList = ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Update employee information", "quit"]
@@ -27,22 +29,22 @@ const addDep = [
 ]
 
 const newRole = [
-    {
-        type: 'input',
-        name: 'name',
-        message: "What is the role you would like to add?"
-    },
-    {
-        type: 'list',
-        name: 'department_id',
-        message: "What department is this role in?",
-        choices: tbd
-    },
-    {
-        type: 'input',
-        name: 'salary',
-        message: "What is this roles salary"
-    }
+    // {
+    //     type: 'input',
+    //     name: 'name',
+    //     message: "What is the role you would like to add?"
+    // },
+    // {
+    //     type: 'list',
+    //     name: 'departments_id',
+    //     message: "What department is this role in?",
+    //     choices: depMap
+    // },
+    // {
+    //     type: 'input',
+    //     name: 'salary',
+    //     message: "What is this roles salary"
+    // }
 ]
 
 const addEmp = [
@@ -94,14 +96,29 @@ function init() {
                             db.addDepartment(answers)
                                 .then(() => {
                                     console.log("The database has been updated");
-                                    init();
+                                    return init();
                                 })
                         })
                     break;
                 case "Add a role":
-                    //use .map to get an array of objects with employee names
-                    inquirer.prompt(newRole)
-                    //more to be added
+                    addRole()
+                    // inquirer.prompt(newRole)
+                        // .then(answers => {
+                        //     console.log(answers.addRole)
+                        //     let depRName = answers.name
+                        //     let depId = answers.departments_id 
+                        //     let depMoney = answers.salary
+                        //     connection.query(`INSERT INTO ROLE SET ? ( name, departments_id, salary) VALUES("${depRName}", "${depId}","${depMoney}")`, function(err, res) {
+                        //         if (err) {
+                        //             console.log(err);
+                        //         }
+                        //         console.table(`added: ${depRName}`, res),
+                        //         init();
+                        //     })
+                        // }).then(() => {
+                        //     console.log("The database has been updated");
+                        //     return init();
+                        // })
                     break;
                 case "Add an employee":
                     inquirer.prompt(addEmp)
@@ -118,5 +135,53 @@ function init() {
             }
         })
 }
-
+function addRole() {
+        console.log("This will add a role");
+        return connection.query(
+            `SELECT * FROM DEPARTMENTS`, function (err, res) {
+                if (err) {
+                    console.log(err)
+                    return init();
+                }
+                const depMap = res.map(department => ({
+                    value: department.id,
+                    name: department.name
+                }))
+                console.log(depMap)
+               inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'name',
+                    message: "What is the role you would like to add?"
+                },
+                {
+                    type: 'list',
+                    name: 'departments_id',
+                    message: "What department is this role in?",
+                    choices: depMap
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: "What is this roles salary"
+                }
+               ]).then(answers => {
+                console.log(answers.addRole)
+                let depRName = answers.name
+                let depId = answers.departments_id 
+                let depMoney = answers.salary
+                connection.query(`INSERT INTO ROLES ( name, departments_id, salary) VALUES("${depRName}", "${depId}","${depMoney}")`, function(err, res) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.table(`added: ${depRName}`, res),
+                    init();
+                })
+            }).then(() => {
+                console.log("The database has been updated");
+                return init();
+            })
+            }
+        )
+    }
 init();
