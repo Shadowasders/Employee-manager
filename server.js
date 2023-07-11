@@ -91,11 +91,9 @@ function addRole() {
                     if (err) {
                         console.log(err);
                     }
-                    console.table(`added: ${depRName}`, res);
-                })
-            }).then(() => {
-                console.log("The database has been updated"),
+                    console.log("The database has been updated"),
                     init();
+                })
             })
         }
     )
